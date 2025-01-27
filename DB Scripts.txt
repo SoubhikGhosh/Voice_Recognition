@@ -1,0 +1,69 @@
+-- Database: voice_db
+
+-- DROP DATABASE IF EXISTS voice_db;
+
+CREATE DATABASE voice_db
+    WITH
+    OWNER = soubhikghosh
+    ENCODING = 'UTF8'
+    LC_COLLATE = 'C'
+    LC_CTYPE = 'C'
+    TABLESPACE = pg_default
+    CONNECTION LIMIT = -1
+    IS_TEMPLATE = False;
+
+
+-- Table: public.person_phone_mapping
+
+-- DROP TABLE IF EXISTS public.person_phone_mapping;
+
+CREATE TABLE IF NOT EXISTS public.person_phone_mapping
+(
+    person_name text COLLATE pg_catalog."default" NOT NULL,
+    phone_number character varying(10) COLLATE pg_catalog."default" NOT NULL,
+    CONSTRAINT person_phone_mapping_pkey PRIMARY KEY (phone_number)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.person_phone_mapping
+    OWNER to soubhikghosh;
+
+-- Table: public.voice_embeddings
+
+-- DROP TABLE IF EXISTS public.voice_embeddings;
+
+CREATE TABLE IF NOT EXISTS public.voice_embeddings
+(
+    id integer NOT NULL DEFAULT nextval('voice_embeddings_id_seq'::regclass),
+    embedding vector(192),
+    phone_number character varying(10) COLLATE pg_catalog."default",
+    transcription text COLLATE pg_catalog."default",
+    CONSTRAINT voice_embeddings_pkey PRIMARY KEY (id),
+    CONSTRAINT fk_phone_number FOREIGN KEY (phone_number)
+        REFERENCES public.person_phone_mapping (phone_number) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE CASCADE
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.voice_embeddings
+    OWNER to soubhikghosh;
+-- Index: voice_embeddings_ivf_index
+
+-- DROP INDEX IF EXISTS public.voice_embeddings_ivf_index;
+
+CREATE INDEX IF NOT EXISTS voice_embeddings_ivf_index
+    ON public.voice_embeddings USING ivfflat
+    (embedding vector_cosine_ops)
+    WITH (lists=100)
+    TABLESPACE pg_default;
+-- Index: voice_embeddings_transcription_index
+
+-- DROP INDEX IF EXISTS public.voice_embeddings_transcription_index;
+
+CREATE INDEX IF NOT EXISTS voice_embeddings_transcription_index
+    ON public.voice_embeddings USING btree
+    (transcription COLLATE pg_catalog."default" ASC NULLS LAST)
+    TABLESPACE pg_default;
