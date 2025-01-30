@@ -1,0 +1,9 @@
+curl --location 'http://127.0.0.1:5000/test-db-connection'
+
+curl --location 'https://127.0.0.1:5002/register' \
+--form 'audio=@"/Users/soubhikghosh/Downloads/voices/Ravi.wav"' \
+--form 'name="Ravi"' \
+--form 'phone_number="9902000779"'
+
+curl --location 'https://127.0.0.1:5002/recognize' \
+--form 'audio=@"/Users/soubhikghosh/Downloads/voices/RaviTest.wav"'
