@@ -1,14 +1,25 @@
 import os
 from flask import Flask, request, jsonify
+from flask_cors import cross_origin, CORS
 from utilities.audio_utils import process_audio, generate_embedding, transcribe_audio
 from utilities.dbUtils import find_most_similar_embedding, verify_transcription_and_get_user_info, register_user_in_db
 from utilities.testDbConnection import test_connection
 # Flask app
 app = Flask(__name__)
+CORS(app, resources={r"/*": {"origins": ["https://172.20.10.2:3000"]}})
+
+@app.before_request
+def log_request():
+    print(f"Incoming request from {request.remote_addr}")
+
+@app.route('/', methods=['GET'])
+@cross_origin(origins=['*'])
+def root_call():
+    return jsonify("Voice Recognition Backend"), 200
 
 # Flask endpoints
-
 @app.route('/test-db-connection', methods=['GET'])
+@cross_origin(origins=['*'])
 def test_db_connection():
     if test_connection() == "Connection successful!":
         return jsonify(test_connection()), 200
@@ -17,6 +28,7 @@ def test_db_connection():
     
 
 @app.route("/register", methods=["POST"])
+@cross_origin(origins=['*'])
 def register_user():
     """
     Registers a user by storing voice embeddings and transcription in the database.
@@ -28,7 +40,7 @@ def register_user():
     if not audio_file or not person_name or not phone_number:
         return jsonify({"error": "Missing required parameters."}), 400
 
-    audio_path = f"tmp/{audio_file.filename}"
+    audio_path = f"audit/registration/{audio_file.filename}"
     audio_file.save(audio_path)
 
     try:
@@ -47,10 +59,9 @@ def register_user():
         return jsonify({"message": "User registered successfully.", "transcription": transcription}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    finally:
-        os.remove(audio_path)
 
 @app.route("/recognize", methods=["POST"])
+@cross_origin(origins=['*'])
 def recognize_user():
     """
     Recognizes a user by comparing their voice embedding using pgvector
@@ -62,7 +73,7 @@ def recognize_user():
     if not audio_file:
         return jsonify({"error": "Missing required parameters."}), 400
 
-    audio_path = f"tmp/{audio_file.filename}"
+    audio_path = f"audit/recognition/{audio_file.filename}"
     audio_file.save(audio_path)
 
     try:
@@ -102,9 +113,6 @@ def recognize_user():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    finally:
-        os.remove(audio_path)
-
 # Run Flask app
 if __name__ == "__main__":
     cert_file = './certificates/backend.crt'

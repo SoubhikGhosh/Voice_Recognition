@@ -1,3 +1,5 @@
+CREATE EXTENSION IF NOT EXISTS vector;
+
 -- Database: voice_db
 
 -- DROP DATABASE IF EXISTS voice_db;
@@ -32,6 +34,8 @@ ALTER TABLE IF EXISTS public.person_phone_mapping
 -- Table: public.voice_embeddings
 
 -- DROP TABLE IF EXISTS public.voice_embeddings;
+
+CREATE SEQUENCE voice_embeddings_id_seq;
 
 CREATE TABLE IF NOT EXISTS public.voice_embeddings
 (

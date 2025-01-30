@@ -70,7 +70,6 @@ def find_most_similar_embedding(query_embedding, phone_number=None):
                 ORDER BY 
                     distance ASC;
             """
-            print(cur.mogrify(query, (query_embedding,)).decode('utf-8')) 
             cur.execute(query, (query_embedding,))
 
         results = cur.fetchall()
