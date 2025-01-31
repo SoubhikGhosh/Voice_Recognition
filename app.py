@@ -26,7 +26,44 @@ def test_db_connection():
     else:
         return jsonify(test_connection()), 500
     
+@app.route("/feedback", methods=["POST"])
+@cross_origin(origins=['*'])
+def register_feedback():
+    """
+    Registers a user by storing voice embeddings and transcription in the database.
+    """
+    audio_file = request.files.get("audio")
+    person_name = request.form.get("name")
+    phone_number = request.form.get("phone_number")
+    feedback_type = request.form.get("feedback_type")
 
+    if not audio_file or not person_name or not phone_number or not feedback_type:
+        return jsonify({"error": "Missing required parameters."}), 400
+    
+    audio_path = f"audit/registration/{audio_file.filename}"
+    audio_file.save(audio_path)
+    if feedback_type == "correct":
+        try:
+            # Process audio
+            signal = process_audio(audio_path)
+
+            # Generate embedding
+            embedding = generate_embedding(signal)
+
+            # Transcribe audio
+            transcription = transcribe_audio(audio_path)
+
+            # Register the user (storing both embedding and transcription)
+            register_user_in_db(person_name, phone_number, embedding, transcription)
+
+            return jsonify({"message": "User feedback registered successfully."}), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+        
+    else:
+        return jsonify({"message": "Thank you for helping us improve."}), 204
+
+    
 @app.route("/register", methods=["POST"])
 @cross_origin(origins=['*'])
 def register_user():
