@@ -37,9 +37,10 @@ def register_feedback():
     phone_number = request.form.get("phone_number")
     feedback_type = request.form.get("feedback_type")
 
-    if not audio_file or not person_name or not phone_number or not feedback_type:
+    if not audio_file or not person_name or not phone_number:
         return jsonify({"error": "Missing required parameters."}), 400
     
+    feedback_type = "correct"
     audio_path = f"audit/registration/{audio_file.filename}"
     audio_file.save(audio_path)
     if feedback_type == "correct":
