@@ -71,3 +71,16 @@ CREATE INDEX IF NOT EXISTS voice_embeddings_transcription_index
     ON public.voice_embeddings USING btree
     (transcription COLLATE pg_catalog."default" ASC NULLS LAST)
     TABLESPACE pg_default;
+
+
+CREATE TABLE IF NOT EXISTS public.feedback
+(
+    id integer NOT NULL DEFAULT nextval('feedback_id_seq'::regclass),
+    "timestamp" timestamp without time zone DEFAULT now(),
+    actual_phone_number character varying(10) COLLATE pg_catalog."default" NOT NULL,
+    predicted_phone_number character varying(10) COLLATE pg_catalog."default" NOT NULL,
+    confidence_score double precision NOT NULL,
+    embedding vector(192) NOT NULL,
+    feedback_type character varying(50) COLLATE pg_catalog."default" NOT NULL,
+    CONSTRAINT feedback_pkey PRIMARY KEY (id)
+)
