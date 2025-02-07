@@ -1,9 +1,10 @@
-import os
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 from flask_cors import cross_origin, CORS
 from utilities.audio_utils import process_audio, generate_embedding, transcribe_audio
-from utilities.dbUtils import find_most_similar_embedding, verify_transcription_and_get_user_info, register_user_in_db
+from utilities.dbUtils import find_most_similar_embedding, verify_transcription_and_get_user_info, register_user_in_db, check_if_registered, insert_feedback
 from utilities.testDbConnection import test_connection
+from utilities.tts import text_to_speech
+
 # Flask app
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": ["https://172.20.10.2:3000"]}})
@@ -30,39 +31,60 @@ def test_db_connection():
 @cross_origin(origins=['*'])
 def register_feedback():
     """
-    Registers a user by storing voice embeddings and transcription in the database.
+    Handles user feedback by storing voice embeddings, transcription, and other details in the database.
     """
-    audio_file = request.files.get("audio")
-    person_name = request.form.get("name")
-    phone_number = request.form.get("phone_number")
-    feedback_type = request.form.get("feedback_type")
+    try:
+        audio_file = request.files.get("audio")
+        person_name = request.form.get("name")
+        predicted_phone_number = request.form.get("predicted_phone_number")
+        feedback_type = request.form.get("feedback_type", "correct").lower()
+        confidence = request.form.get('confidence')
 
-    if not audio_file or not person_name or not phone_number:
-        return jsonify({"error": "Missing required parameters."}), 400
-    
-    feedback_type = "correct"
-    audio_path = f"audit/registration/{audio_file.filename}"
-    audio_file.save(audio_path)
-    if feedback_type == "correct":
+        # Validate required parameters
+        if not audio_file or not person_name or not predicted_phone_number:
+            return jsonify({"error": "Missing required parameters."}), 400
+
+        # Determine actual phone number
+        actual_phone_number = request.form.get('actual_phone_number', predicted_phone_number)
+
+        # Validate phone number format
+        if not actual_phone_number.isdigit() or len(actual_phone_number) != 10:
+            return jsonify({"error": "Phone number must be exactly 10 digits."}), 400
+
+        # Check if user is registered
+        if not check_if_registered(actual_phone_number):
+            return jsonify({"error": "Please register your phone number before giving feedback."}), 408
+
+        # Save audio file
+        audio_path = f"audit/Feedback/{audio_file.filename}"
+        audio_file.save(audio_path)
+
+        if feedback_type == "correct":
+            try:
+                # Process audio
+                signal = process_audio(audio_path)
+
+                # Generate embedding
+                embedding = generate_embedding(signal)
+
+                # Transcribe audio
+                transcription = transcribe_audio(audio_path)
+
+                # Register user in database
+                register_user_in_db(person_name, predicted_phone_number, embedding, transcription)
+            except Exception as e:
+                return jsonify({"error": f"Audio processing error: {str(e)}"}), 500
+
+        # Insert feedback into the database
         try:
-            # Process audio
-            signal = process_audio(audio_path)
-
-            # Generate embedding
-            embedding = generate_embedding(signal)
-
-            # Transcribe audio
-            transcription = transcribe_audio(audio_path)
-
-            # Register the user (storing both embedding and transcription)
-            register_user_in_db(person_name, phone_number, embedding, transcription)
-
-            return jsonify({"message": "User feedback registered successfully."}), 200
+            insert_feedback(embedding, actual_phone_number, predicted_phone_number, confidence, feedback_type)
         except Exception as e:
-            return jsonify({"error": str(e)}), 500
-        
-    else:
-        return jsonify({"message": "Thank you for helping us improve."}), 204
+            return jsonify({"error": f"Error inserting feedback: {str(e)}"}), 500
+
+        return (jsonify({"message": "Feedback received successfully."}), 200) if feedback_type == "correct" else (jsonify({"message": "Thank you for helping us improve."}), 204)
+
+    except Exception as e:
+        return jsonify({"error": f"Unexpected error: {str(e)}"}), 500
 
     
 @app.route("/register", methods=["POST"])
@@ -151,6 +173,38 @@ def recognize_user():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+@app.route("/tts", methods=["POST"])
+def speak():
+    data = request.json
+    if not data or "text" not in data:
+        return {"error": "Please provide 'text' in JSON body"}, 400
+    
+    text = data["text"]
+    print(text)
+    voice = data["voice"]
+    language = data["language"]
+    output_file = text_to_speech(text, voice, language)
+    return send_file(output_file, as_attachment=True)
+
+@app.route("/tts-options", methods=["GET"])
+def speechOptions():
+    options = {
+        "languages": {
+            "en-US": {"name": "English (US)", "voices": ["male", "female"]},
+            "en-UK": {"name": "English (UK)", "voices": ["male", "female"]},
+            "en-IN": {"name": "English (India)", "voices": ["male", "female"]},
+            "hi-IN": {"name": "Hindi", "voices": ["male", "female"]},
+            "ta-IN": {"name": "Tamil", "voices": ["female"]},
+            "te-IN": {"name": "Telugu", "voices": ["female"]},
+            "kn-IN": {"name": "Kannada", "voices": ["female"]},
+            "mr-IN": {"name": "Marathi", "voices": ["female"]},
+            "bh-IN": {"name": "Bhojpuri", "voices": ["female"]},
+            "bn-IN": {"name": "Bengali", "voices": ["female"]},
+        }
+    }
+    return jsonify(options), 200
+    
 # Run Flask app
 if __name__ == "__main__":
     cert_file = './certificates/backend.crt'

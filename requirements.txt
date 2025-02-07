@@ -9,3 +9,5 @@ soundfile>=0.10.3
 flask
 flask-cors
 psycopg2
+vosk
+pyttsx3

@@ -152,3 +152,65 @@ def verify_transcription_and_get_user_info(input_audio_path, recognized_phone):
         conn.close()
 
     return transcription_match, max_similarity_percentage, user_info["person_name"] if user_info else None
+
+def check_if_registered(phone_number):
+    try:
+        conn = connect_db()
+        cursor = conn.cursor()
+        sql_get_name = f"""
+            SELECT person_name 
+            FROM person_phone_mapping 
+            WHERE phone_number = '{phone_number}';
+        """
+
+        print(sql_get_name)  # Print the final query before execution
+
+        cursor.execute(sql_get_name)
+
+        results = cursor.fetchall()
+        conn.close()
+
+        print(results[0])
+        if results:
+            first = results[0]  # If a name is found, use it
+            print (first['person_name'])
+            return first['person_name']
+        else:
+            print(f"Error: No name found for phone number {phone_number}.")
+            return None
+        
+    except Exception as e:
+        print(f"Error while checking if user is registered: {e}")
+        return None
+
+def insert_feedback (embedding, actual_phone_number, predicted_phone_number, confidence_score, feedback_type):
+    conn = connect_db()
+    cursor = conn.cursor()
+
+    if confidence_score=="" and predicted_phone_number=="":
+        confidence_score=0
+        predicted_phone_number="Unpredicted"
+
+    # Convert embedding to the pgvector format
+    embedding_str = f"[{','.join(map(str, embedding))}]"
+
+    try:
+
+        # Insert feedback record
+        cursor.execute("""
+            INSERT INTO feedback (actual_phone_number, predicted_phone_number, confidence_score, embedding, feedback_type)
+            VALUES (%s, %s, %s, %s, %s);
+        """, (actual_phone_number, predicted_phone_number, confidence_score, embedding_str, feedback_type))
+        
+        conn.commit()
+        print("Feedback successfully inserted.")
+    
+    except Exception as e:
+        print(f"Error inserting feedback: {e}")
+        conn.rollback()
+        raise
+    
+    finally:
+        cursor.close()
+        conn.close()
+
