@@ -207,6 +207,4 @@ def speechOptions():
     
 # Run Flask app
 if __name__ == "__main__":
-    cert_file = './certificates/backend.crt'
-    key_file = './certificates/backend.key'
-    app.run(host="0.0.0.0", port=5002, debug=False, ssl_context=(cert_file, key_file))
+    app.run(host="0.0.0.0", port=5000)
