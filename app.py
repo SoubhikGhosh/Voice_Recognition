@@ -57,8 +57,24 @@ def register_feedback():
             return jsonify({"error": "Please register your phone number before giving feedback."}), 408
 
         # Save audio file
-        audio_path = f"home/ubuntu/pay-by-voice/Voice_Recognition/Feedback/{audio_file.filename}"
-        audio_file.save(audio_path)
+        temp_path = f"audit/Feedback/{audio_file.filename}"
+        print(f"temp: {temp_path}")
+
+        try:
+            print("CP4")
+            audio_file.save(temp_path)
+
+        except Exception as e:
+            print(f"Exception during saving sound: {e}")
+
+        audio_path = f"audit/Registration/conv_{audio_file.filename}"
+
+        # Convert to standard WAV format
+        try:
+            subprocess.run(["/usr/bin/ffmpeg", "-i", temp_path, "-acodec", "pcm_s16le", "-ar", "16000", "-ac", "1", audio_path], check=True)
+        except subprocess.CalledProcessError as e:
+            return f"Conversion failed: {e}", 500
+
         
 
         if feedback_type == "correct":
@@ -162,8 +178,23 @@ def recognize_user():
     if not audio_file:
         return jsonify({"error": "Missing required parameters."}), 400
 
-    audio_path = f"home/ubuntu/pay-by-voice/Voice_Recognition/Recognition/{audio_file.filename}"
-    audio_file.save(audio_path)
+    temp_path = f"audit/Registration/{audio_file.filename}"
+    print(f"temp: {temp_path}")
+
+    try:
+        print("CP4")
+        audio_file.save(temp_path)
+
+    except Exception as e:
+        print(f"Exception during saving sound: {e}")
+
+    audio_path = f"audit/Recognition/conv_{audio_file.filename}"
+
+    # Convert to standard WAV format
+    try:
+        subprocess.run(["/usr/bin/ffmpeg", "-i", temp_path, "-acodec", "pcm_s16le", "-ar", "16000", "-ac", "1", audio_path], check=True)
+    except subprocess.CalledProcessError as e:
+        return f"Conversion failed: {e}", 500
 
     try:
         # Process audio
