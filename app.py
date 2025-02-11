@@ -67,7 +67,7 @@ def register_feedback():
         except Exception as e:
             print(f"Exception during saving sound: {e}")
 
-        audio_path = f"audit/Registration/conv_{audio_file.filename}"
+        audio_path = f"audit/Feedback/conv_{audio_file.filename}"
 
         # Convert to standard WAV format
         try:
@@ -87,6 +87,8 @@ def register_feedback():
 
                 # Transcribe audio
                 transcription = transcribe_audio(audio_path)
+
+                print(f"person_name, predicted_phone_number, embedding, transcription: {person_name}, {predicted_phone_number}, {embedding}, {transcription}}")
 
                 # Register user in database
                 register_user_in_db(person_name, predicted_phone_number, embedding, transcription)
