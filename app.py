@@ -56,7 +56,7 @@ def register_feedback():
             return jsonify({"error": "Please register your phone number before giving feedback."}), 408
 
         # Save audio file
-        audio_path = f"audit/Feedback/{audio_file.filename}"
+        audio_path = f"home/ubuntu/pay-by-voice/Voice_Recognition/Feedback/{audio_file.filename}"
         audio_file.save(audio_path)
 
         if feedback_type == "correct":
@@ -100,7 +100,7 @@ def register_user():
     if not audio_file or not person_name or not phone_number:
         return jsonify({"error": "Missing required parameters."}), 400
 
-    audio_path = f"audit/registration/{audio_file.filename}"
+    audio_path = f"/home/ubuntu/pay-by-voice/Voice_Recognition/audit/Registration/{audio_file.filename}"
     audio_file.save(audio_path)
 
     try:
@@ -133,7 +133,7 @@ def recognize_user():
     if not audio_file:
         return jsonify({"error": "Missing required parameters."}), 400
 
-    audio_path = f"audit/recognition/{audio_file.filename}"
+    audio_path = f"home/ubuntu/pay-by-voice/Voice_Recognition/Recognition/{audio_file.filename}"
     audio_file.save(audio_path)
 
     try:
