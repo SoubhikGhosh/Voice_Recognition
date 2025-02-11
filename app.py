@@ -93,15 +93,22 @@ def register_user():
     """
     Registers a user by storing voice embeddings and transcription in the database.
     """
+    print("CP1")
     audio_file = request.files.get("audio")
     person_name = request.form.get("name")
     phone_number = request.form.get("phone_number")
+    print("CP2")
 
     if not audio_file or not person_name or not phone_number:
         return jsonify({"error": "Missing required parameters."}), 400
+    print("CP3")
+
 
     audio_path = f"/home/ubuntu/pay-by-voice/Voice_Recognition/audit/Registration/{audio_file.filename}"
+    print(f"{audio_path}")
+
     try:
+        print("CP4")
         audio_file.save(audio_path)
 
     except Exception as e:
