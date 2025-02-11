@@ -14,24 +14,42 @@ stt_model = Wav2Vec2ForCTC.from_pretrained("facebook/wav2vec2-base-960h")
 
 # Utility functions
 def process_audio(audio_path):
+    """
+    Converts an input audio file to a PCM WAV file (if needed) using ffmpeg,
+    then loads it using librosa.
+    
+    Parameters:
+        audio_path (str): Path to the original audio file.
+    
+    Returns:
+        np.ndarray: The audio signal.
+    """
     try:
-        signal, sr = librosa.load(audio_path, sr=16000, mono=True)
-        # Noise Reduction (Wiener filtering for residual noise)
-        # signal = wiener(signal)
-        #trimming 
-        # signal = librosa.effects.trim(signal)
+        # Create a new file path for the converted audio.
+        # For example, if audio_path is ".../recording.wav", then use ".../recording_fixed.wav"
+        base, ext = os.path.splitext(audio_path)
+        converted_audio_path = base + "_fixed.wav"
         
-        # Voice Activity Detection (VAD)
-        # energy = np.array([np.sum(np.abs(signal[i:i + 512])**2) for i in range(0, len(signal), 256)])
-        # mask = energy > 0.02 * np.max(energy)
-        # vad_signal = np.concatenate([signal[i * 256:(i + 1) * 256] for i in range(len(mask)) if mask[i]])
-        # signal = vad_signal
-
+        # Build the ffmpeg command to convert the audio file to PCM WAV
+        # -acodec pcm_s16le  => PCM 16-bit little-endian encoding
+        # -ar 16000           => Set sample rate to 16000 Hz
+        # -ac 1               => Set audio channels to mono
+        # -y                  => Overwrite output file if it exists
+        command = (
+            f"ffmpeg -i \"{audio_path}\" "
+            f"-acodec pcm_s16le -ar 16000 -ac 1 \"{converted_audio_path}\" -y"
+        )
+        # Execute the command; stdout/stderr can be captured if needed.
+        subprocess.run(command, shell=True, check=True)
+        
+        # Now load the converted file using librosa
+        signal, sr = librosa.load(converted_audio_path, sr=16000, mono=True)
         return signal
     
     except Exception as e:
         print(f"Exception in processing audio: {e}")
-
+        return None
+    
 def generate_embedding(signal, model=speaker_model):
     # Convert the signal to a numpy array and then to a tensor in a more efficient way
     signal = np.array(signal)  # Ensure signal is a numpy array
