@@ -39,7 +39,9 @@ def register_feedback():
         person_name = request.form.get("name")
         predicted_phone_number = request.form.get("predicted_phone_number")
         feedback_type = request.form.get("feedback_type", "correct").lower()
-        confidence = request.form.get('confidence')
+        confidence = request.form.get("confidence")
+
+        print("request :", request.form)
 
         # Validate required parameters
         if not audio_file or not person_name or not predicted_phone_number:
