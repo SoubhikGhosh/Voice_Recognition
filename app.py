@@ -4,6 +4,7 @@ from utilities.audio_utils import process_audio, generate_embedding, transcribe_
 from utilities.dbUtils import find_most_similar_embedding, verify_transcription_and_get_user_info, register_user_in_db, check_if_registered, insert_feedback
 from utilities.testDbConnection import test_connection
 from utilities.tts import text_to_speech
+import subprocess
 
 # Flask app
 app = Flask(__name__)
@@ -105,15 +106,29 @@ def register_user():
     print("CP3")
 
 
-    audio_path = f"audit/Registration/{audio_file.filename}"
-    print(f"{audio_path}")
+    temp_path = f"audit/Registration/{audio_file.filename}"
+    print(f"temp: {temp_path}")
 
     try:
         print("CP4")
-        audio_file.save(audio_path)
+        audio_file.save(temp_path)
 
     except Exception as e:
         print(f"Exception during saving sound: {e}")
+
+    audio_path = f"audit/Registration/conv_{audio_file.filename}"
+
+    # Convert to standard WAV format
+    try:
+        subprocess.run([
+            "ffmpeg", "-i", temp_path,
+            "-acodec", "pcm_s16le",  # Force PCM encoding
+            "-ar", "16000",          # Set sample rate
+            "-ac", "1",               # Set mono audio
+            audio_path
+        ], check=True)
+    except subprocess.CalledProcessError as e:
+        return f"Conversion failed: {e}", 500
 
     try:
         # Process audio
