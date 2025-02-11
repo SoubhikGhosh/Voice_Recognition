@@ -223,6 +223,7 @@ def recognize_user():
         )
 
         print(transcription_match, similarity_percentage, person_name)
+        
 
         if transcription_match:
             return jsonify({

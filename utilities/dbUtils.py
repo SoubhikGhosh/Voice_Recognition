@@ -191,6 +191,10 @@ def insert_feedback (embedding, actual_phone_number, predicted_phone_number, con
         confidence_score=0
         predicted_phone_number="Unpredicted"
 
+    if confidence_score=="undefined":
+        confidence_score=0
+
+
     # Convert embedding to the pgvector format
     embedding_str = f"[{','.join(map(str, embedding))}]"
 
