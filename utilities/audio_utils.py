@@ -4,7 +4,8 @@ import numpy as np
 import librosa
 import torch
 import os
-import subprocess 
+import subprocess
+import wave
 # from scipy.signal import wiener
 
 # Load models
@@ -15,6 +16,22 @@ stt_model = Wav2Vec2ForCTC.from_pretrained("facebook/wav2vec2-base-960h")
 # Utility functions
 def process_audio(audio_path):
     try:
+        audio_path = os.path.abspath(audio_path)
+        print(f"Attempting to load: {audio_path}")  # Check Flask logs for this
+        if not os.path.exists(audio_path):
+            raise FileNotFoundError(f"Path {audio_path} does not exist")
+        
+        with wave.open(audio_path, 'rb') as wav_file:
+            print(f"Number of Channels: {wav_file.getnchannels()}")
+            print(f"Sample Width: {wav_file.getsampwidth()} bytes")
+            print(f"Sample Rate: {wav_file.getframerate()} Hz")
+            print(f"Number of Frames: {wav_file.getnframes()}")
+            print(f"Compression Type: {wav_file.getcomptype()}")
+            
+            frames = wav_file.readframes(10)  # Read first 10 frames
+            print("First 10 frames (raw bytes):")
+            print(frames)
+        
         signal, sr = librosa.load(audio_path, sr=16000, mono=True)
         return signal
     
