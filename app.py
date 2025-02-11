@@ -5,6 +5,7 @@ from utilities.dbUtils import find_most_similar_embedding, verify_transcription_
 from utilities.testDbConnection import test_connection
 from utilities.tts import text_to_speech
 import subprocess
+import time
 
 # Flask app
 app = Flask(__name__)
@@ -35,6 +36,7 @@ def register_feedback():
     Handles user feedback by storing voice embeddings, transcription, and other details in the database.
     """
     try:
+        timestamp = time.strftime("%Y%m%d_%H%M%S")  # Format: YYYYMMDD_HHMMSS
         audio_file = request.files.get("audio")
         person_name = request.form.get("name")
         predicted_phone_number = request.form.get("predicted_phone_number")
@@ -59,7 +61,7 @@ def register_feedback():
             return jsonify({"error": "Please register your phone number before giving feedback."}), 408
 
         # Save audio file
-        temp_path = f"audit/Feedback/{audio_file.filename}"
+        temp_path = f"audit/Feedback/{timestamp}_{audio_file.filename}"
         print(f"temp: {temp_path}")
 
         try:
@@ -69,7 +71,7 @@ def register_feedback():
         except Exception as e:
             print(f"Exception during saving sound: {e}")
 
-        audio_path = f"audit/Feedback/conv_{audio_file.filename}"
+        audio_path = f"audit/Feedback/conv_{timestamp}_{audio_file.filename}"
 
         # Convert to standard WAV format
         try:
@@ -115,6 +117,8 @@ def register_user():
     """
     Registers a user by storing voice embeddings and transcription in the database.
     """
+    timestamp = time.strftime("%Y%m%d_%H%M%S")  # Format: YYYYMMDD_HHMMSS
+
     print("CP1")
     audio_file = request.files.get("audio")
     person_name = request.form.get("name")
@@ -126,7 +130,7 @@ def register_user():
     print("CP3")
 
 
-    temp_path = f"audit/Registration/{audio_file.filename}"
+    temp_path = f"audit/Registration/{timestamp}_{audio_file.filename}"
     print(f"temp: {temp_path}")
 
     try:
@@ -136,7 +140,7 @@ def register_user():
     except Exception as e:
         print(f"Exception during saving sound: {e}")
 
-    audio_path = f"audit/Registration/conv_{audio_file.filename}"
+    audio_path = f"audit/Registration/conv_{timestamp}_{audio_file.filename}"
 
     # Convert to standard WAV format
     try:
@@ -176,13 +180,15 @@ def recognize_user():
     Recognizes a user by comparing their voice embedding using pgvector
     and verifying transcription.
     """
+    timestamp = time.strftime("%Y%m%d_%H%M%S")  # Format: YYYYMMDD_HHMMSS
+
     audio_file = request.files.get("audio")
     phone_number = request.form.get("phone_number")  # Optional
 
     if not audio_file:
         return jsonify({"error": "Missing required parameters."}), 400
 
-    temp_path = f"audit/Registration/{audio_file.filename}"
+    temp_path = f"audit/Registration/{timestamp}_{audio_file.filename}"
     print(f"temp: {temp_path}")
 
     try:
@@ -192,7 +198,7 @@ def recognize_user():
     except Exception as e:
         print(f"Exception during saving sound: {e}")
 
-    audio_path = f"audit/Recognition/conv_{audio_file.filename}"
+    audio_path = f"audit/Recognition/conv_{timestamp}_{audio_file.filename}"
 
     # Convert to standard WAV format
     try:
@@ -223,7 +229,7 @@ def recognize_user():
         )
 
         print(transcription_match, similarity_percentage, person_name)
-        
+
 
         if transcription_match:
             return jsonify({
