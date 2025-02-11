@@ -16,6 +16,7 @@ stt_model = Wav2Vec2ForCTC.from_pretrained("facebook/wav2vec2-base-960h")
 # Utility functions
 def process_audio(audio_path):
     try:
+        print(f"Received path: {audio_path}")
         audio_path = os.path.abspath(audio_path)
         print(f"Attempting to load: {audio_path}")  # Check Flask logs for this
         if not os.path.exists(audio_path):
@@ -27,7 +28,7 @@ def process_audio(audio_path):
             print(f"Sample Rate: {wav_file.getframerate()} Hz")
             print(f"Number of Frames: {wav_file.getnframes()}")
             print(f"Compression Type: {wav_file.getcomptype()}")
-            
+
             frames = wav_file.readframes(10)  # Read first 10 frames
             print("First 10 frames (raw bytes):")
             print(frames)
