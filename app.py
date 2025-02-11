@@ -120,13 +120,7 @@ def register_user():
 
     # Convert to standard WAV format
     try:
-        subprocess.run([
-            "ffmpeg", "-i", temp_path,
-            "-acodec", "pcm_s16le",  # Force PCM encoding
-            "-ar", "16000",          # Set sample rate
-            "-ac", "1",               # Set mono audio
-            audio_path
-        ], check=True)
+        subprocess.run(["/usr/bin/ffmpeg", "-i", temp_path, "-acodec", "pcm_s16le", "-ar", "16000", "-ac", "1", audio_path], check=True)
     except subprocess.CalledProcessError as e:
         return f"Conversion failed: {e}", 500
 
