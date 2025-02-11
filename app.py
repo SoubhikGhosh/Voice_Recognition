@@ -101,7 +101,11 @@ def register_user():
         return jsonify({"error": "Missing required parameters."}), 400
 
     audio_path = f"/home/ubuntu/pay-by-voice/Voice_Recognition/audit/Registration/{audio_file.filename}"
-    audio_file.save(audio_path)
+    try:
+        audio_file.save(audio_path)
+
+    except Exception as e:
+        print(f"Exception during saving sound: {e}")
 
     try:
         # Process audio
