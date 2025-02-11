@@ -106,18 +106,25 @@ def register_user():
     try:
         # Process audio
         signal = process_audio(audio_path)
+        print("processing done")
 
         # Generate embedding
         embedding = generate_embedding(signal)
+        print("embedding generation done")
 
         # Transcribe audio
         transcription = transcribe_audio(audio_path)
+        print("transcription done")
+
 
         # Register the user (storing both embedding and transcription)
         register_user_in_db(person_name, phone_number, embedding, transcription)
 
+        print("User registration in db done")
+
         return jsonify({"message": "User registered successfully.", "transcription": transcription}), 200
     except Exception as e:
+        print(e)
         return jsonify({"error": str(e)}), 500
 
 @app.route("/recognize", methods=["POST"])
