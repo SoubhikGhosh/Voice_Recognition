@@ -16,17 +16,6 @@ stt_model = Wav2Vec2ForCTC.from_pretrained("facebook/wav2vec2-base-960h")
 def process_audio(audio_path):
     try:
         signal, sr = librosa.load(audio_path, sr=16000, mono=True)
-        # Noise Reduction (Wiener filtering for residual noise)
-        # signal = wiener(signal)
-        #trimming 
-        # signal = librosa.effects.trim(signal)
-        
-        # Voice Activity Detection (VAD)
-        # energy = np.array([np.sum(np.abs(signal[i:i + 512])**2) for i in range(0, len(signal), 256)])
-        # mask = energy > 0.02 * np.max(energy)
-        # vad_signal = np.concatenate([signal[i * 256:(i + 1) * 256] for i in range(len(mask)) if mask[i]])
-        # signal = vad_signal
-
         return signal
     
     except Exception as e:
@@ -34,6 +23,7 @@ def process_audio(audio_path):
 
 def generate_embedding(signal, model=speaker_model):
     # Convert the signal to a numpy array and then to a tensor in a more efficient way
+    print("generate_embedding signal", signal)
     signal = np.array(signal)  # Ensure signal is a numpy array
     embedding = model.encode_batch(torch.tensor(signal)).squeeze().tolist()
     return embedding

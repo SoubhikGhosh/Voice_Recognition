@@ -118,6 +118,7 @@ def register_user():
         # Process audio
         signal = process_audio(audio_path)
         print("processing done")
+        print("signal", signal)
 
         # Generate embedding
         embedding = generate_embedding(signal)
