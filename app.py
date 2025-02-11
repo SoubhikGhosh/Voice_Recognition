@@ -58,7 +58,7 @@ def register_feedback():
         # Save audio file
         audio_path = f"home/ubuntu/pay-by-voice/Voice_Recognition/Feedback/{audio_file.filename}"
         audio_file.save(audio_path)
-        print(f"saved to path: {audio_path}")
+        
 
         if feedback_type == "correct":
             try:
