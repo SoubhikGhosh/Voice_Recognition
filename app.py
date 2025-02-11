@@ -104,7 +104,7 @@ def register_user():
     print("CP3")
 
 
-    audio_path = f"/home/ubuntu/pay-by-voice/Voice_Recognition/audit/Registration/{audio_file.filename}"
+    audio_path = f"audit/Registration/{audio_file.filename}"
     print(f"{audio_path}")
 
     try:
