@@ -5,7 +5,8 @@ import librosa
 import torch
 import os
 import subprocess 
-from scipy.signal import wiener
+# from scipy.signal import wiener
+
 # Load models
 speaker_model = SpeakerRecognition.from_hparams(source="speechbrain/spkrec-ecapa-voxceleb", savedir="tmp")
 processor = Wav2Vec2Processor.from_pretrained("facebook/wav2vec2-base-960h")
@@ -16,15 +17,15 @@ def process_audio(audio_path):
     try:
         signal, sr = librosa.load(audio_path, sr=16000, mono=True)
         # Noise Reduction (Wiener filtering for residual noise)
-        signal = wiener(signal)
+        # signal = wiener(signal)
         #trimming 
         # signal = librosa.effects.trim(signal)
         
         # Voice Activity Detection (VAD)
-        energy = np.array([np.sum(np.abs(signal[i:i + 512])**2) for i in range(0, len(signal), 256)])
-        mask = energy > 0.02 * np.max(energy)
-        vad_signal = np.concatenate([signal[i * 256:(i + 1) * 256] for i in range(len(mask)) if mask[i]])
-        signal = vad_signal
+        # energy = np.array([np.sum(np.abs(signal[i:i + 512])**2) for i in range(0, len(signal), 256)])
+        # mask = energy > 0.02 * np.max(energy)
+        # vad_signal = np.concatenate([signal[i * 256:(i + 1) * 256] for i in range(len(mask)) if mask[i]])
+        # signal = vad_signal
 
         return signal
     
