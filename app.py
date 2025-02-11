@@ -88,7 +88,7 @@ def register_feedback():
                 # Transcribe audio
                 transcription = transcribe_audio(audio_path)
 
-                print(f"person_name, predicted_phone_number, embedding, transcription: {person_name}, {predicted_phone_number}, {embedding}, {transcription}")
+                print(f"person_name, predicted_phone_number, embedding, transcription, confidence: {person_name}, {predicted_phone_number}, {embedding}, {transcription}, {confidence}")
 
                 # Register user in database
                 register_user_in_db(person_name, predicted_phone_number, embedding, transcription)
